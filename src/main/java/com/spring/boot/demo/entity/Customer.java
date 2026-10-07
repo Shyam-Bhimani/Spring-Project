@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name="customers")
@@ -18,6 +19,10 @@ public class Customer extends Person{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long customerId;
+
+    @OneToMany(mappedBy = "customer")
+    private List<Loan> loans;
+
     private String address;
     private String firstName;
     private String lastName;
