@@ -25,7 +25,7 @@ public class LoanController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<LoanResponse> getById(@PathVariable Long loanId){
+    public ResponseEntity<LoanResponse> getById(@PathVariable("id") Long loanId){ // Added explicit path binding
         LoanResponse response = loanService.getById(loanId);
         return ResponseEntity
                 .status(HttpStatus.OK).body(response);
@@ -38,14 +38,26 @@ public class LoanController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<LoanResponse> update(@PathVariable Long loanId,@Valid @RequestBody LoanCreateRequest request){
-        LoanResponse response = loanService.update(loanId,request);
-        return  ResponseEntity.noContent().build();
+    public ResponseEntity<LoanResponse> update(@PathVariable("id") Long loanId, @Valid @RequestBody LoanCreateRequest request){ // Added explicit path binding
+        LoanResponse response = loanService.update(loanId, request);
+        return ResponseEntity.status(HttpStatus.OK).body(response); // Updated to return the modified object body
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long loanId){
+    public ResponseEntity<Void> delete(@PathVariable("id") Long loanId){ // Added explicit path binding
         loanService.delete(loanId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/approve")
+    public ResponseEntity<LoanResponse> approve(@PathVariable("id") Long loanId){ // Added explicit path binding
+        LoanResponse response = loanService.approve(loanId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<LoanResponse> reject(@PathVariable("id") Long loanId){ // Added explicit path binding
+        LoanResponse response = loanService.reject(loanId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }
