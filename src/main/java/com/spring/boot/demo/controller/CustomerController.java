@@ -3,6 +3,7 @@ package com.spring.boot.demo.controller;
 import com.spring.boot.demo.dto.CustomerCreateRequest;
 import com.spring.boot.demo.dto.CustomerResponse;
 import com.spring.boot.demo.service.CustomerService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(
+        name="Customer Management",
+        description = "APIs for managing customers"
+)
 @RestController
 @RequestMapping("api/customers")
 @RequiredArgsConstructor
