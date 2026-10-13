@@ -24,9 +24,19 @@ public class Customer extends Person{
     private List<Loan> loans;
 
     private String address;
+    @Column(
+            name = "customer_fname",
+            nullable = false,
+            length = 100
+    )
     private String firstName;
     private String lastName;
     private String phone;
+    @Column(
+            nullable = false,
+            unique = true,
+            length = 150
+    )
     private String email;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
