@@ -1,6 +1,7 @@
 package com.spring.boot.demo.repository;
 
 import com.spring.boot.demo.entity.Loan;
+import com.spring.boot.demo.entity.LoanStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -34,5 +35,7 @@ public interface LoanRepository extends JpaRepository<Loan,Long> {
             """)
     List<Loan> findByStatusOrderByAmount(@Param("status") String status);
 
-    Page<Loan> findByStatus(String status, Pageable pageable);
+    // Make sure it takes 'LoanStatus status', not 'String status'
+    Page<Loan> findByStatus(LoanStatus status, Pageable pageable);
+
 }
