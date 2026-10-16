@@ -13,10 +13,16 @@ import com.spring.boot.demo.repository.CustomerRepository;
 import com.spring.boot.demo.repository.LoanRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.spring.boot.demo.mapper.LoanMapper.toResponse;
 
@@ -101,4 +107,34 @@ public class LoanService {
         log.info("Loan Rejected!");
         return  toResponse(loanRepository.save(loan));
     }
+
+    @Transactional(readOnly = true)
+    public List<LoanResponse> getByStatus(String status) {
+        List<Loan> loans = loanRepository.findByStatus(status);
+
+        return loans.stream().map(LoanMapper::toResponse).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Loan> getByCustomerLoans(Long customerId){
+        return loanRepository.findByCustomer_CustomerId(customerId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Loan> getHighValueLoans(BigDecimal minimumAmount){
+        return loanRepository.findByAmountGreaterThan(minimumAmount);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Loan> getLoans(String status, int pageNumber, int pageSize){
+        if(pageNumber<0){
+            throw new IllegalArgumentException("Page Number cannot be negetive");
+        }
+        if(pageSize<1 || pageNumber>100){
+            throw new IllegalArgumentException("Page size must be between 1 and 100");
+        }
+        Pageable pageable = PageRequest.of(pageNumber,pageSize, Sort.by(Sort.Direction.DESC, "loanId"));
+        return loanRepository.findByStatus(status,pageable);
+    }
+
 }
