@@ -49,6 +49,7 @@ public class LoanService {
         return toResponse(saved);
     }
 
+    @Transactional(readOnly = true)
     public LoanResponse getById(Long loanId){
         Loan loan = loanRepository.findById(loanId)
                 .orElseThrow(()-> new LoanNotFoundException(loanId));
@@ -88,10 +89,9 @@ public class LoanService {
         if(loan.getStatus()!=LoanStatus.PENDING){
             throw new LoanBusinessException("Only PENDING loans can be APPROVED!");
         }
-
-
         loan.setStatus(LoanStatus.APPROVED);
         log.info("Loan Approved!");
+        //throw new LoanBusinessException("Error to check rollback");
         return toResponse(loanRepository.save(loan));
     }
 
