@@ -25,7 +25,7 @@ public class Customer extends Person{
 
     private String address;
     @Column(
-            name = "customer_fname",
+            name = "first_name",
             nullable = false,
             length = 100
     )

@@ -2,6 +2,7 @@ package com.spring.boot.demo.controller;
 
 import com.spring.boot.demo.dto.CustomerCreateRequest;
 import com.spring.boot.demo.dto.CustomerResponse;
+import com.spring.boot.demo.entity.Customer;
 import com.spring.boot.demo.service.CustomerService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -45,8 +46,9 @@ public class CustomerController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<CustomerResponse>> getAll(){
-        return ResponseEntity.ok(customerService.getAll());
+    public ResponseEntity<List<CustomerResponse>> getCustomers(@RequestParam(required = false) String firstName) {
+        return ResponseEntity.ok(customerService.getCustomers(firstName)
+                .stream().map(customer -> new CustomerResponse(customer.getCustomerId(),customer.getFirstName(),customer.getLastName(),customer.getEmail(),customer.getPhone())).toList());
     }
 
     @PutMapping("/{id}")

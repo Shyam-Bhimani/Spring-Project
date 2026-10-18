@@ -38,10 +38,14 @@ public class CustomerService {
         return toResponse(customer);
     }
 
-    public List<CustomerResponse> getAll(){
-        return customerRepository.findAll().stream().map(CustomerMapper::toResponse).collect(Collectors.toList());
+    public List<Customer> getCustomers(String firstName) {
+        // If firstName is provided and not blank, search by name
+        if (firstName != null && !firstName.trim().isEmpty()) {
+            return customerRepository.findByFirstName(firstName);
+        }
+        // Otherwise, return the full list
+        return customerRepository.findAll();
     }
-
     public CustomerResponse update(Long customerId, CustomerCreateRequest request){
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(()->new CustomerNotFoundException(customerId));
