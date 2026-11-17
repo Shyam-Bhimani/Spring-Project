@@ -163,16 +163,18 @@ public class LoanController {
 
     /**
      * Get a paginated list of loans filtered by status.
-     * Endpoint: GET /api/v1/loans?status=APPROVED&page=0&size=10
+     * Endpoint: GET /api/loans?status=APPROVED&page=0&size=10&sortBy=amount&direction=DESC
      */
     @GetMapping
     public ResponseEntity<Page<LoanResponse>> getLoans(
             @RequestParam String status,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
 
         // 1. Fetch the raw Page of entities from the service layer
-        Page<Loan> loanEntityPage = loanService.getLoans(status, page, size);
+        Page<Loan> loanEntityPage = loanService.getLoans(status, page, size,sortBy, direction);
 
         // 2. Use Page.map() directly to transform the contents while preserving pagination data
         Page<LoanResponse> loanPage = loanEntityPage.map(loan -> new LoanResponse(
@@ -243,4 +245,6 @@ public class LoanController {
             @RequestParam(defaultValue = "1000000") BigDecimal minAmount) {
         return ResponseEntity.ok(loanService.getCustomersWithTotalLoanGreaterThan(minAmount).stream().map(Customer-> new CustomerResponse(Customer.getCustomerId(), Customer.getFirstName(),Customer.getLastName(), Customer.getEmail(),Customer.getPhone())).toList());
     }
+
+
 }

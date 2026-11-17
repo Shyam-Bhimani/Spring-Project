@@ -182,13 +182,18 @@ public class LoanService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Loan> getLoans(String statusStr, int pageNumber, int pageSize) {
+    public Page<Loan> getLoans(String statusStr, int pageNumber, int pageSize,String sortBy,
+                               String direction) {
         if (pageNumber < 0) {
             throw new IllegalArgumentException("Page Number cannot be negative");
         }
         if (pageSize < 1 || pageNumber > 100) {
             throw new IllegalArgumentException("Page size must be between 1 and 100");
         }
+
+        Sort sort = direction.equalsIgnoreCase("DESC")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
 
         // 1. Convert the String to your Enum type safely
         LoanStatus status;
@@ -198,7 +203,7 @@ public class LoanService {
             throw new IllegalArgumentException("Invalid loan status: " + statusStr);
         }
 
-        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "loanId"));
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
 
         // 2. Pass the Enum type to your repository method
         return loanRepository.findByStatus(status, pageable);
