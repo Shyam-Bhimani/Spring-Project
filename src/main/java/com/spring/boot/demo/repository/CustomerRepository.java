@@ -18,4 +18,6 @@ public interface CustomerRepository extends JpaRepository<Customer,Long> {
             where c.firstName=:firstName
             """)
     List<Customer> findByFirstName(@Param("firstName")String firstName);
+
+    boolean existsByEmail(String email);
 }

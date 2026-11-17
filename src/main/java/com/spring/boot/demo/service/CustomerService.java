@@ -4,6 +4,7 @@ import com.spring.boot.demo.dto.CustomerCreateRequest;
 import com.spring.boot.demo.dto.CustomerResponse;
 import com.spring.boot.demo.entity.Customer;
 import com.spring.boot.demo.exception.CustomerNotFoundException;
+import com.spring.boot.demo.exception.DuplicateCustomerEmailException;
 import com.spring.boot.demo.mapper.CustomerMapper;
 import com.spring.boot.demo.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,12 @@ public class CustomerService {
     private final CustomerRepository customerRepository;
 
     public CustomerResponse create(CustomerCreateRequest request){
+        if (customerRepository.existsByEmail(request.email())) {
+            throw new DuplicateCustomerEmailException(
+                    "Customer email already exists: "
+                            + request.email()
+            );
+        }
         Customer customer = new Customer();
         customer.setFirstName(request.firstName());
         customer.setLastName(request.lastName());

@@ -106,4 +106,14 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(error);
     }
+
+    @ExceptionHandler(DuplicateCustomerEmailException.class)
+    public ResponseEntity<String> handleDuplicateEmail(
+            DuplicateCustomerEmailException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ex.getMessage());
+    }
+
 }
