@@ -1,8 +1,12 @@
 package com.spring.boot.demo.controller;
 
+import com.spring.boot.demo.dto.CustomerLoanTotal;
+import com.spring.boot.demo.dto.CustomerResponse;
 import com.spring.boot.demo.dto.LoanCreateRequest;
 import com.spring.boot.demo.dto.LoanResponse;
+import com.spring.boot.demo.entity.Customer;
 import com.spring.boot.demo.entity.Loan;
+import com.spring.boot.demo.entity.LoanStatus;
 import com.spring.boot.demo.service.LoanService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @Tag(
         name="Loan Management",
@@ -152,7 +157,7 @@ public class LoanController {
         List<LoanResponse> loans = loanService.getHighValueLoans(minimumAmount)
                 .stream()
                 .map(loan -> new LoanResponse(loan.getLoanId(), loan.getCustomer().getCustomerId(), loan.getAmount(),loan.getInterestRate(),loan.getTenureMonths(),loan.getStatus()))
-                .toList();;
+                .toList();
         return ResponseEntity.ok(loans);
     }
 
@@ -180,5 +185,51 @@ public class LoanController {
         ));
 
         return ResponseEntity.ok(loanPage);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<LoanResponse>> getLoansByEmail(@RequestParam(required = false) String email,@RequestParam(required = false) String firstName) {
+        List<LoanResponse> loans;
+
+        if (email != null && !email.isBlank()) {
+            loans = loanService.getLoansByCustomerEmail(email).stream()
+                    .map(loan -> new LoanResponse(loan.getLoanId(), loan.getCustomer().getCustomerId(), loan.getAmount(),loan.getInterestRate(),loan.getTenureMonths(),loan.getStatus()))
+                    .toList();
+        } else if (firstName != null && !firstName.isBlank()) {
+            loans = loanService.getLoansByCustomerFirstName(firstName).stream()
+                    .map(loan -> new LoanResponse(loan.getLoanId(), loan.getCustomer().getCustomerId(), loan.getAmount(),loan.getInterestRate(),loan.getTenureMonths(),loan.getStatus()))
+                    .toList();
+        } else {
+            loans = loanService.getAllLoans().stream()
+                    .map(loan -> new LoanResponse(loan.getLoanId(), loan.getCustomer().getCustomerId(), loan.getAmount(),loan.getInterestRate(),loan.getTenureMonths(),loan.getStatus()))
+                    .toList();
+        }
+        return ResponseEntity.ok(loans);
+    }
+
+    @GetMapping("/count-by-status")
+    public ResponseEntity<Map<String, Long>> getLoanStatusCounts() {
+        return ResponseEntity.ok(loanService.getLoanCountsByStatus());
+    }
+
+    @GetMapping("/grouped-count")
+    public ResponseEntity<Map<LoanStatus, Long>> getGroupedLoanCounts() {
+        return ResponseEntity.ok(loanService.getGroupedLoanCounts());
+    }
+
+    @GetMapping("/totalAmount/approveLoans")
+    public ResponseEntity<Long> getSumOfApprovedLoans() {
+        return ResponseEntity.ok(loanService.getSumOfApprovedLoans());
+    }
+
+    @GetMapping("/total-by-customer")
+    public ResponseEntity<List<CustomerLoanTotal>> getTotalLoanAmountPerCustomer() {
+        return ResponseEntity.ok(loanService.getTotalLoanAmountPerCustomer());
+    }
+
+    @GetMapping("/high-value-customers")
+    public ResponseEntity<List<CustomerResponse>> getHighValueCustomers(
+            @RequestParam(defaultValue = "1000000") BigDecimal minAmount) {
+        return ResponseEntity.ok(loanService.getCustomersWithTotalLoanGreaterThan(minAmount).stream().map(Customer-> new CustomerResponse(Customer.getCustomerId(), Customer.getFirstName(),Customer.getLastName(), Customer.getEmail(),Customer.getPhone())).toList());
     }
 }

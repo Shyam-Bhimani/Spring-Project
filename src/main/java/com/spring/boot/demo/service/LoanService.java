@@ -1,7 +1,9 @@
 package com.spring.boot.demo.service;
 
+import com.spring.boot.demo.dto.CustomerLoanTotal;
 import com.spring.boot.demo.dto.LoanCreateRequest;
 import com.spring.boot.demo.dto.LoanResponse;
+import com.spring.boot.demo.dto.LoanStatusCount;
 import com.spring.boot.demo.entity.Customer;
 import com.spring.boot.demo.entity.Loan;
 import com.spring.boot.demo.entity.LoanStatus;
@@ -21,7 +23,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.spring.boot.demo.mapper.LoanMapper.toResponse;
@@ -113,6 +118,53 @@ public class LoanService {
         List<Loan> loans = loanRepository.findByStatus(status);
 
         return loans.stream().map(LoanMapper::toResponse).collect(Collectors.toList());
+    }
+
+    public List<Loan> getLoansByCustomerEmail(String email) {
+        return loanRepository.findLoansByCustomerEmail(email);
+    }
+
+    public List<Loan> getLoansByCustomerFirstName(String email) {
+        return loanRepository.findLoansByCustomerFirstName(email);
+    }
+
+    public List<Loan> getAllLoans() {
+        return loanRepository.findAllLoansWithCustomer();
+    }
+
+    public Map<String, Long> getLoanCountsByStatus() {
+        Map<String, Long> counts = new LinkedHashMap<>();
+        counts.put("APPROVED", loanRepository.countByStatus(LoanStatus.APPROVED));
+        counts.put("PENDING", loanRepository.countByStatus(LoanStatus.PENDING));
+        counts.put("REJECTED", loanRepository.countByStatus(LoanStatus.REJECTED));
+        return counts;
+    }
+
+    public long getSumOfApprovedLoans(){
+        return loanRepository.sumOfApprovedLoans(LoanStatus.APPROVED);
+    }
+
+    public Map<LoanStatus, Long> getGroupedLoanCounts() {
+        Map<LoanStatus, Long> result = new LinkedHashMap<>();
+
+        // Optional: Pre-fill with 0L so statuses with 0 loans still appear
+        for (LoanStatus status : LoanStatus.values()) {
+            result.put(status, 0L);
+        }
+
+        for (LoanStatusCount row : loanRepository.countLoansByStatus()) {
+            result.put(row.getStatus(), row.getCount());
+        }
+
+        return result;
+    }
+
+    public List<CustomerLoanTotal> getTotalLoanAmountPerCustomer() {
+        return loanRepository.findTotalLoanAmountPerCustomer();
+    }
+
+    public List<Customer> getCustomersWithTotalLoanGreaterThan(BigDecimal minAmount) {
+        return loanRepository.findCustomersWithTotalLoanGreaterThan(minAmount);
     }
 
     @Transactional(readOnly = true)

@@ -1,5 +1,8 @@
 package com.spring.boot.demo.repository;
 
+import com.spring.boot.demo.dto.CustomerLoanTotal;
+import com.spring.boot.demo.dto.LoanStatusCount;
+import com.spring.boot.demo.entity.Customer;
 import com.spring.boot.demo.entity.Loan;
 import com.spring.boot.demo.entity.LoanStatus;
 import org.springframework.data.domain.Page;
@@ -36,6 +39,55 @@ public interface LoanRepository extends JpaRepository<Loan,Long> {
     List<Loan> findByStatusOrderByAmount(@Param("status") String status);
 
     // Make sure it takes 'LoanStatus status', not 'String status'
+
+    @Query("""
+            SELECT l
+            FROM Loan l
+            JOIN l.customer c
+            WHERE c.email = :email"""
+            )
+    List<Loan> findLoansByCustomerEmail(@Param("email") String email);
+
+    @Query(
+            """
+                    select l FROM Loan l JOIN l.customer c WHERE c.firstName= :firstName
+                    """
+    )
+    List<Loan> findLoansByCustomerFirstName(@Param("firstName") String firstName);
+
+    @Query("SELECT l FROM Loan l JOIN FETCH l.customer")
+    List<Loan> findAllLoansWithCustomer();
+
+    @Query("SELECT COUNT(l) FROM Loan l WHERE l.status = :status")
+    long countLoansByStatus(@Param("status") String status);
+
+    long countByStatus(LoanStatus loanStatus);
+
+    @Query("SELECT l.status AS status, COUNT(l) AS count FROM Loan l GROUP BY l.status")
+    List<LoanStatusCount> countLoansByStatus();
+
+    @Query("Select SUM(l.amount) from Loan l where l.status = :status")
+    long sumOfApprovedLoans(@Param("status") LoanStatus status);
+
+    @Query("""
+           SELECT c.customerId AS customerId,
+                  c.email AS email,
+                  COALESCE(SUM(l.amount), 0) AS totalAmount
+           FROM Loan l
+           JOIN l.customer c
+           GROUP BY c.customerId, c.email
+           """)
+    List<CustomerLoanTotal> findTotalLoanAmountPerCustomer();
+
+    @Query("""
+           SELECT c
+           FROM Loan l
+           JOIN l.customer c
+           GROUP BY c
+           HAVING SUM(l.amount) > :minAmount
+           """)
+    List<Customer> findCustomersWithTotalLoanGreaterThan(@Param("minAmount") BigDecimal minAmount);
+
     Page<Loan> findByStatus(LoanStatus status, Pageable pageable);
 
 }
