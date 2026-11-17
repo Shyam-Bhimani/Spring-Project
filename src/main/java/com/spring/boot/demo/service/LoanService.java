@@ -124,6 +124,10 @@ public class LoanService {
         return loanRepository.findLoansByCustomerEmail(email);
     }
 
+    public List<Loan> getLoansByCustomerEmailNative(String email) {
+        return loanRepository.findLoansByCustomerEmailNative(email);
+    }
+
     public List<Loan> getLoansByCustomerFirstName(String email) {
         return loanRepository.findLoansByCustomerFirstName(email);
     }

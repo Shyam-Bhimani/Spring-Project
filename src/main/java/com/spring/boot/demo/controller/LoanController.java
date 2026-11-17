@@ -188,7 +188,7 @@ public class LoanController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<LoanResponse>> getLoansByEmail(@RequestParam(required = false) String email,@RequestParam(required = false) String firstName) {
+    public ResponseEntity<List<LoanResponse>> getLoansByFilter(@RequestParam(required = false) String email,@RequestParam(required = false) String firstName) {
         List<LoanResponse> loans;
 
         if (email != null && !email.isBlank()) {
@@ -204,6 +204,17 @@ public class LoanController {
                     .map(loan -> new LoanResponse(loan.getLoanId(), loan.getCustomer().getCustomerId(), loan.getAmount(),loan.getInterestRate(),loan.getTenureMonths(),loan.getStatus()))
                     .toList();
         }
+        return ResponseEntity.ok(loans);
+    }
+
+    @GetMapping("/searchByEmailNative")
+    public ResponseEntity<List<LoanResponse>> getLoansByEmailNative(@RequestParam String email) {
+        List<LoanResponse> loans;
+
+        loans = loanService.getLoansByCustomerEmailNative(email).stream()
+                    .map(loan -> new LoanResponse(loan.getLoanId(), loan.getCustomer().getCustomerId(), loan.getAmount(),loan.getInterestRate(),loan.getTenureMonths(),loan.getStatus()))
+                    .toList();
+
         return ResponseEntity.ok(loans);
     }
 

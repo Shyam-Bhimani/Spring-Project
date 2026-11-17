@@ -45,8 +45,18 @@ public interface LoanRepository extends JpaRepository<Loan,Long> {
             FROM Loan l
             JOIN l.customer c
             WHERE c.email = :email"""
-            )
+    )
     List<Loan> findLoansByCustomerEmail(@Param("email") String email);
+
+    @Query(value = """
+            SELECT l.*
+            FROM loans l
+            INNER JOIN customers c ON l.customer_id = c.customer_id
+            WHERE c.email = :email
+            """,
+            nativeQuery = true
+    )
+    List<Loan> findLoansByCustomerEmailNative(@Param("email") String email);
 
     @Query(
             """
