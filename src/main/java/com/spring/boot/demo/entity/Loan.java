@@ -24,6 +24,10 @@ public class Loan {
     @JoinColumn(name="customer_id", nullable = false)
     private Customer customer;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private AppUser user;
+
     @Column(nullable = false,precision = 15,scale = 2)
     private BigDecimal amount;
 

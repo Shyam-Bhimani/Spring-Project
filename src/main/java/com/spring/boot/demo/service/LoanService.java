@@ -4,6 +4,7 @@ import com.spring.boot.demo.dto.CustomerLoanTotal;
 import com.spring.boot.demo.dto.LoanCreateRequest;
 import com.spring.boot.demo.dto.LoanResponse;
 import com.spring.boot.demo.dto.LoanStatusCount;
+import com.spring.boot.demo.entity.AppUser;
 import com.spring.boot.demo.entity.Customer;
 import com.spring.boot.demo.entity.Loan;
 import com.spring.boot.demo.entity.LoanStatus;
@@ -11,6 +12,7 @@ import com.spring.boot.demo.exception.CustomerNotFoundException;
 import com.spring.boot.demo.exception.LoanBusinessException;
 import com.spring.boot.demo.exception.LoanNotFoundException;
 import com.spring.boot.demo.mapper.LoanMapper;
+import com.spring.boot.demo.repository.AppUserRepository;
 import com.spring.boot.demo.repository.CustomerRepository;
 import com.spring.boot.demo.repository.LoanRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,17 +43,25 @@ import static com.spring.boot.demo.mapper.LoanMapper.toResponse;
 public class LoanService {
     private final LoanRepository loanRepository;
     private final CustomerRepository customerRepository;
+    private final AppUserRepository appUserRepository;
 
+    @Transactional
     public LoanResponse create(LoanCreateRequest request) {
-        Customer customer =customerRepository.findById(request.customerId())
-                .orElseThrow(()-> new CustomerNotFoundException(request.customerId()));
-        Loan loan =new Loan();
+        Customer customer = customerRepository.findById(request.customerId())
+                .orElseThrow(() -> new CustomerNotFoundException(request.customerId()));
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        AppUser loggedInUser = appUserRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Authenticated user not found: " + email));
+
+        Loan loan = new Loan();
         loan.setCustomer(customer);
+        loan.setUser(loggedInUser); // Set BEFORE save()
         loan.setAmount(request.amount());
         loan.setInterestRate(request.interestRate());
         loan.setTenureMonths(request.tenureMonths());
-
         loan.setStatus(LoanStatus.PENDING);
+
         Loan saved = loanRepository.save(loan);
         log.info("Loan Saved!");
 
@@ -56,8 +70,24 @@ public class LoanService {
 
     @Transactional(readOnly = true)
     public LoanResponse getById(Long loanId){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserEmail = authentication.getName();
+
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+        // 2. Retrieve the requested loan
         Loan loan = loanRepository.findById(loanId)
-                .orElseThrow(()-> new LoanNotFoundException(loanId));
+                .orElseThrow(() -> new LoanNotFoundException(loanId));
+
+        // 3. Business rule: ADMIN can view any loan; CUSTOMER can only view their own
+        if (!isAdmin) {
+            String loanOwnerEmail = loan.getUser().getEmail();
+            if (!loanOwnerEmail.equalsIgnoreCase(currentUserEmail)) {
+                // 4. Reject access to another customer's loan (returns HTTP 403 Forbidden)
+                throw new AccessDeniedException("You are not authorized to access this loan.");
+            }
+        }
         return toResponse(loan);
     }
 
@@ -87,6 +117,7 @@ public class LoanService {
         loanRepository.delete(loan);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional(timeout = 5)
     public LoanResponse approve(Long loanId){
         Loan loan = loanRepository.findById(loanId).orElseThrow(()->new LoanNotFoundException(loanId));
@@ -100,6 +131,7 @@ public class LoanService {
         return toResponse(loanRepository.save(loan));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional(timeout = 5)
     public LoanResponse reject(Long loanId){
         Loan loan = loanRepository.findById(loanId).orElseThrow(()->new LoanNotFoundException(loanId));

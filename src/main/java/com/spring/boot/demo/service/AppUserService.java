@@ -20,7 +20,7 @@ public class AppUserService {
     }
 
     @Transactional
-    public UserResponse registerCustomer(RegisterRequest request){
+    public UserResponse register(RegisterRequest request){
         String normalizesEmail = request.email().trim().toLowerCase();
         if(appUserRepository.existsByEmail(normalizesEmail)){
             throw new DuplicateCustomerEmailException("Email already Exist!!");
