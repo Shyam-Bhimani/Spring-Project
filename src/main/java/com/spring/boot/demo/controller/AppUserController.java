@@ -43,30 +43,30 @@ public class AppUserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(
-            @Valid @RequestBody LoginRequest loginRequest,
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) {
-        // 1. Validate email & password via Spring Security (uses UserDetailsService + PasswordEncoder)
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.email().trim().toLowerCase(),
-                        loginRequest.password()
-                )
-        );
-
-        // 2. Store authentication in SecurityContext & HttpSession (creates JSESSIONID cookie)
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(authentication);
-        SecurityContextHolder.setContext(context);
-        securityContextRepository.saveContext(context, request, response);
-
-        return ResponseEntity.ok(Map.of(
-                "message", "Login successful",
-                "email", authentication.getName(),
-                "authorities", authentication.getAuthorities()
-        ));
-    }
+//    @PostMapping("/login")
+//    public ResponseEntity<?> login(
+//            @Valid @RequestBody LoginRequest loginRequest,
+//            HttpServletRequest request,
+//            HttpServletResponse response
+//    ) {
+//        // 1. Validate email & password via Spring Security (uses UserDetailsService + PasswordEncoder)
+//        Authentication authentication = authenticationManager.authenticate(
+//                new UsernamePasswordAuthenticationToken(
+//                        loginRequest.email().trim().toLowerCase(),
+//                        loginRequest.password()
+//                )
+//        );
+//
+//        // 2. Store authentication in SecurityContext & HttpSession (creates JSESSIONID cookie)
+//        SecurityContext context = SecurityContextHolder.createEmptyContext();
+//        context.setAuthentication(authentication);
+//        SecurityContextHolder.setContext(context);
+//        securityContextRepository.saveContext(context, request, response);
+//
+//        return ResponseEntity.ok(Map.of(
+//                "message", "Login successful",
+//                "email", authentication.getName(),
+//                "authorities", authentication.getAuthorities()
+//        ));
+//    }
 }
